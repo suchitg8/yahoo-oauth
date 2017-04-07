@@ -15,7 +15,10 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
+from yahoo_leagues.views import LoginView, SuccessView
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+    url(r'^login/$', LoginView.as_view()),
+    url(r'^success/$', SuccessView.as_view())
 ]

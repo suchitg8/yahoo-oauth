@@ -1,0 +1,20 @@
+<!Doctype html>
+
+<html>
+
+<head>
+	<title> Fantasy Sports </title>
+</head>
+
+<body>
+
+	<div class="container">
+		<form id="login-form" method="post" action="/login/">
+			{% csrf_token %}
+			<input type="submit"name="login" value="Login with Yahoo" />
+		</form>
+	</div>
+
+</body>
+
+</html>
