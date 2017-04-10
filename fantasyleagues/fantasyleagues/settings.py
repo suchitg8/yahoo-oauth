@@ -16,7 +16,10 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SETTINGS_PATH = os.path.dirname(os.path.dirname(__file__))+"/fantasyleagues"
 
-print SETTINGS_PATH
+YAHOO_CONSUMER_KEY = 'dj0yJmk9akV2MGM5TURyOEtUJmQ9WVdrOVF6WjBWMnh4TXpBbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD05NQ--'
+YAHOO_CONSUMER_SECRET = '337a648e530e0860b392ef262620496fb879dcb3'
+
+SITE_URL = 'ec2-54-202-91-106.us-west-2.compute.amazonaws.com'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/

@@ -15,10 +15,12 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
-from yahoo_leagues.views import LoginView, SuccessView
+from yahoo_leagues.views import LoginView, AuthView, HomeView, YahooAuth
 
 urlpatterns = [
-    url(r'^admin/', admin.site.urls),
-    url(r'^login/$', LoginView.as_view()),
-    url(r'^success/$', SuccessView.as_view())
+    url(r'^admin/', admin.site.urls, name="admin"),
+    url(r'^login/$', LoginView.as_view(), name="login"),
+    url(r'^home/$', HomeView.as_view(), name="home"),
+    url(r'^yahoo_auth/$', YahooAuth.as_view(), name="yahoo_auth"),
+    url(r'^auth/$', AuthView.as_view(), name="auth")
 ]

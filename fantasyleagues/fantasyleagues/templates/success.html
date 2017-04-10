@@ -6,6 +6,14 @@
 
 	<body>
 		<h2> Success </h2>
+		<script language="javascript">
+			var xhttp = new XMLHttpRequest();
+			xhttp.onreadystatechange = function() {
+				console.log(this);
+			}; 
+			xhttp.open("GET", "https://fantasysports.yahooapis.com/fantasy/v2/users;use_login=1/games/teams", true);
+			xhttp.send();
+		</script>
 	</body>
 
 </html>
