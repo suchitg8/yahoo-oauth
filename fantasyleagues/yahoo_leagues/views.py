@@ -171,7 +171,7 @@ class SuccessView(View):
         if len(users) == 0:
             UserModel(
                 nickname=data['profile']['nickname'], 
-                imageurl=data['profile']['image']['imageurl'], 
+                imageurl=data['profile']['image']['imageUrl'], 
                 user_id=request.session['xoauth_yahoo_guid']
                 ).save()
 
