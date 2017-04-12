@@ -1,0 +1,17 @@
+{% extends "main.html" %}
+
+{% block main %}
+
+	<!-- {{ data }} -->
+
+	{% for game in data %}
+		{% for k, v in game.items %}
+		<div style="display: inline; margin: 0 5px 0;">
+			<label> {{ k }} </label>
+			<span> {{ v }} </span>
+		</div>
+		{% endfor %}
+		<br/>
+	{% endfor %}
+
+{% endblock %}

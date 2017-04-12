@@ -23,7 +23,7 @@ def apicall(request, api):
     }
     r = requests.get(api,headers=header)
 
-    print r
+    print r.text
 
     if r.status_code != 200:
         print "REFRESHING ACCESS TOKEN"
@@ -62,6 +62,8 @@ def apicall(request, api):
         }
 
     r = requests.get(api,headers=header)
+
+    print r
 
     return json.loads(r.text)
 
@@ -175,4 +177,20 @@ class SuccessView(View):
 
         return render(request, 'success.html', {
             'data': data['profile']
+            })
+
+class ShowLeague(View):
+
+    def get(self, request):
+
+        if request.session['access_token'] is None:
+            return HttpResponseRedirect('home')
+
+        league_api = "https://fantasysports.yahooapis.com/fantasy/v2/game/nfl?format=json"
+        data = apicall(request, league_api)
+
+        print data
+
+        return render(request, 'show_league.html', {
+            'data': data['fantasy_content']['game']
             })

@@ -20,8 +20,8 @@
 	<div class="row nav">
 		<div class="col-sm-4"> <h2> Synergy Fantasy Football </h2> </div>
 		<div class="col-sm-2">
-			{% if yuser %}
-				<span> Signed in as <em> {{ yuser }} </em> </span>
+			{% if data.nickname %}
+				<span> Signed in as <em> {{ data.nickname }} </em> </span>
 			{% else %}
 				<form id="login-form" method="post" action="/login/" class="form">
 					{% csrf_token %}
@@ -30,7 +30,7 @@
 			{% endif %}
 		</div>
 		<div class="col-sm-1">
-			<a href="javascript:void(0);"> Link </a>
+			<a href="{% url 'show_league' %}"> Show Leagues </a>
 		</div>
 		<div class="col-sm-1">
 			<select name="dropdown1" class="form-control">
