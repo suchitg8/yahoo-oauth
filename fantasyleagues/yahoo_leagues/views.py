@@ -6,63 +6,84 @@ from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.template.context_processors import csrf
 
-import urllib2
+from yahoo_leagues.models import UserModel
+
+import urllib, urllib2, base64
 import urlparse
 import time
 import oauth2 as oauth
 import json
 import re
+import requests, json
 
 
-class YahooAuth(View):
-    def get_authorization_url(self, request):
+def apicall(request, api):
+    header = {
+        'Authorization': 'Bearer %s'%request.session['access_token']
+    }
+    r = requests.get(api,headers=header)
 
-        # URL to where we will redirect to
-        redirect_url = 'http://'+settings.SITE_URL + reverse('auth')
+    print r
 
-        # set the api URL
-        url = 'https://api.login.yahoo.com/oauth/v2/get_request_token'
+    if r.status_code != 200:
+        print "REFRESHING ACCESS TOKEN"
+        t_url = 'https://api.login.yahoo.com/oauth2/get_token'
+        base64string = base64.encodestring('%s:%s' % (settings.YAHOO_CONSUMER_KEY, settings.YAHOO_CONSUMER_SECRET)).replace('\n', '') 
+        data = {
+                'client_id': settings.YAHOO_CONSUMER_KEY,
+                'client_secret': settings.YAHOO_CONSUMER_SECRET,
+                'grant_type': 'refresh_token',
+                'redirect_uri': 'http://'+settings.SITE_URL+reverse('auth'), 
+                'refresh_token': request.session['refresh_token']
+            }
+        header = {
+                "Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8", 
+                "Authorization": "Basic %s" % base64string, 
+                "Content-Type": "application/x-www-form-urlencoded", # Grant type
+        }
+        q = ''
 
-        # required params for yahoo
-        params = {
-            'oauth_callback': redirect_url,
-            'oauth_timestamp': str(int(time.time())),
-            'oauth_nonce': unicode(csrf(request)['csrf_token']),
-            'oauth_version': '1.0',
-            'xoauth_lang_pref': 'en-us'
+        for key in data.keys():
+            q = q+key+"="+data[key]+'&'
+
+        q = q[:-1]
+
+        r = requests.post(t_url, data=q, headers=header)
+
+        r = json.loads(r.text)
+
+        print r
+
+        for key in r.keys():
+            request.session[key] = r[key]
+
+        header = {
+            'Authorization': 'Bearer %s'%request.session['access_token']
         }
 
-        # create the consumer
-        consumer = oauth.Consumer(key=settings.YAHOO_CONSUMER_KEY, secret=settings.YAHOO_CONSUMER_SECRET)
+    r = requests.get(api,headers=header)
 
-        # create the request
-        req = oauth.Request(method='GET', url=url, parameters=params)
+    return json.loads(r.text)
 
-        # sign the request
-        signature_method = oauth.SignatureMethod_PLAINTEXT()
-        req.sign_request(signature_method, consumer, None)
-
-        # get the request token from yahoo
-        print req.to_url()
-        response = urllib2.urlopen(req.to_url()).read()
-
-        # parse the response
-        params = urlparse.parse_qs(response)
-
-        # store the returned values
-        request.session['yahoo_oauth_token'] = params['oauth_token'][0]
-        request.session['yahoo_oauth_token_secret'] = params['oauth_token_secret'][0]
-
-        # get the authorization URL
-        url = 'https://api.login.yahoo.com/oauth/v2/request_auth?oauth_token=' + params['oauth_token'][0]
-
-        print "AUTH URL"
-        print url
-
-        return url    
+class YahooAuth(View):
 
     def get(self, request):
-        return HttpResponseRedirect(self.get_authorization_url(request))
+
+        param = {
+            'client_id': settings.YAHOO_CONSUMER_KEY,
+            'redirect_uri': 'http://'+settings.SITE_URL+reverse('auth'), 
+            'response_type': 'code', 
+            'state': 'state', 
+        }
+        t_url = "https://api.login.yahoo.com/oauth2/request_auth?"
+
+        y_login_url =  t_url + urllib.urlencode(param)
+
+
+        print y_login_url  #YAHOO login url - NOT local LoginView
+
+        return HttpResponseRedirect(y_login_url)
+
 
 class LoginView(View):
 
@@ -72,111 +93,86 @@ class LoginView(View):
         return render(request, self.template_name)
 
     def post(self, request):
+        for key in request.session.keys():
+            del request.session[key]
         return HttpResponseRedirect(reverse('yahoo_auth'))
 
 class AuthView(View):
 
-    def verify(self, request):
-
-        # ensure we have a session token and the token value is the same as what yahoo returned
-        if 'yahoo_oauth_token' not in request.session \
-           or 'oauth_token' not in request.GET \
-           or 'oauth_verifier' not in request.GET \
-           or request.session['yahoo_oauth_token'] != request.GET['oauth_token']:
-            return False
-        else:
-            return True
-
     def get(self, request):
-        if self.verify(request):
-            data = self.get_user_data(request)
-            print data
-            return render(request, 'success.html', {
-                'data': data
-            })
-        else:
-            return HttpResponseRedirect(reverse('home'))
 
-    def get_user_data(self, request):
+        t_url = "https://api.login.yahoo.com/oauth2/get_token"
+        base64string = base64.encodestring('%s:%s' % (settings.YAHOO_CONSUMER_KEY, settings.YAHOO_CONSUMER_SECRET)).replace('\n', '') 
 
-        data = {}
-
-        print "get_user_data called"
-
-        # if we don't have a token yet, get one now
-        if 'yahoo_access_token' not in request.session:
-
-            print 'yahoo_access_token not in request.session'
-
-            # set the api URL
-            url = 'https://api.login.yahoo.com/oauth/v2/get_token'
-
-            # required params for yahoo
-            params = {
-                'oauth_timestamp': str(int(time.time())),
-                'oauth_nonce': unicode(csrf(request)['csrf_token']),
-                'oauth_version': '1.0',
-                'xoauth_lang_pref': 'en-us',
-                'oauth_verifier': request.GET['oauth_verifier']
+        data = {
+                'client_id': settings.YAHOO_CONSUMER_KEY,
+                'client_secret': settings.YAHOO_CONSUMER_SECRET,
+                'grant_type': 'authorization_code',
+                'redirect_uri': 'http://'+settings.SITE_URL+reverse('auth'), 
+                'code': request.GET['code']
             }
+        header = {
+                "Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8", 
+                "Authorization": "Basic %s" % base64string, 
+                "Content-Type": "application/x-www-form-urlencoded", # Grant type
+        }
 
-            # create the consumer and token
-            consumer = oauth.Consumer(key=settings.YAHOO_CONSUMER_KEY, secret=settings.YAHOO_CONSUMER_SECRET)
-            token = oauth.Token(key=request.session['yahoo_oauth_token'], secret=request.session['yahoo_oauth_token_secret'])
+        print data
+        print header
 
-            # create the request
-            req = oauth.Request(method='GET', url=url, parameters=params)
+        q = ''
 
-            # sign the request
-            signature_method = oauth.SignatureMethod_PLAINTEXT()
-            req.sign_request(signature_method, consumer, token)
+        for key in data.keys():
+            q = q+key+"="+data[key]+'&'
+        q = q[:-1]
 
-            # get the request token from yahoo
-            response = urllib2.urlopen(req.to_url()).read()
+        print q
 
-            # parse the response
-            params = urlparse.parse_qs(response)
+        # req = urllib2.Request(t_url, urllib.urlencode(data), header) 
+        r = requests.post(t_url, data=q, headers=header)
 
-            # store the returned values
-            request.session['yahoo_guid'] = params['xoauth_yahoo_guid'][0]
-            request.session['yahoo_access_token'] = params['oauth_token'][0]
-            request.session['yahoo_access_token_secret'] = params['oauth_token_secret'][0]
+        print r
 
-        # set the url using the user id
-        url = 'https://social.yahooapis.com/v1/user/%s/profile?format=json' % request.session['yahoo_guid']
+        r = json.loads(r.text)
 
-        print url
+        print r
 
-        consumer = oauth.Consumer(key=settings.YAHOO_CONSUMER_KEY, secret=settings.YAHOO_CONSUMER_SECRET)
-        token = oauth.Token(key=request.session['yahoo_access_token'], secret=request.session['yahoo_access_token_secret'])
+        for key in r.keys():
+            request.session[key] = r[key]
 
-        # get the user's data from yahoo
-        client = oauth.Client(consumer, token)
-        response, content = client.request(url)
+        print request.session
 
-        print response
+        # result = urllib2.urlopen(req).read()
 
-        # grab the profile from the response
-        user = json.loads(content)['profile']
-
-        print user
-
-        # split the name
-        full_name = user['nickname'].split(' ', 1)
-
-        # get the user's info
-        data['user_id'] = user['guid']
-        data['username'] = re.sub('[^0-9a-zA-Z]+', '', user['nickname']).lower()
-        #data['email'] = user['emails'][0]['handle'] if 'handle' in user['emails'][0] else ''
-        data['full_name'] = user['nickname']
-        data['first_name'] = full_name[0] if len(full_name) > 0 else ''
-        data['last_name'] = full_name[1] if len(full_name) >= 2 else ''
-        #data['timezone'] = user['timeZone']
-        data['picture'] = user['image']['imageUrl']
-
-        return data
+        return HttpResponseRedirect(reverse('success'))
 
 class HomeView(View):
 
     def get(self, request):
-       return HttpResponse("<h1> Home </h1>")
+       return render(request, 'home.html', {
+        
+        })
+
+class SuccessView(View):
+
+    def get(self, request):
+
+        if request.session['access_token'] is None:
+            return HttpResponseRedirect('home')
+
+        profile_api = "https://social.yahooapis.com/v1/user/%s/profile?format=json"%request.session['xoauth_yahoo_guid']
+        data = apicall(request, profile_api)
+
+        print data
+
+        users = UserModel.objects.filter(user_id=request.session['xoauth_yahoo_guid'])
+        if len(users) == 0:
+            UserModel(
+                nickname=data['profile']['nickname'], 
+                imageurl=data['profile']['imageurl'], 
+                user_id=request.session['xoauth_yahoo_guid']
+                ).save()
+
+        return render(request, 'success.html', {
+            'data': data['profile']
+            })

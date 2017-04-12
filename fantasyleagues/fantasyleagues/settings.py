@@ -16,10 +16,10 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SETTINGS_PATH = os.path.dirname(os.path.dirname(__file__))+"/fantasyleagues"
 
-YAHOO_CONSUMER_KEY = 'dj0yJmk9akV2MGM5TURyOEtUJmQ9WVdrOVF6WjBWMnh4TXpBbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD05NQ--'
-YAHOO_CONSUMER_SECRET = '337a648e530e0860b392ef262620496fb879dcb3'
+YAHOO_CONSUMER_KEY = 'dj0yJmk9a3N0c2dqN1k0OGhiJmQ9WVdrOVJWRnVZV2hzTlRnbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD01Yg--'
+YAHOO_CONSUMER_SECRET = 'aa0d987fac8ed1138bb554f1b3f91f2105027d07'
 
-SITE_URL = 'ec2-54-202-91-106.us-west-2.compute.amazonaws.com'
+SITE_URL = '127.0.0.1'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
@@ -30,7 +30,7 @@ SECRET_KEY = 'yn3_4@sn1&yy_b1w+bjx(mzu8-(#49&za9i#bvy)8el^6)e5f0'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['54.202.91.106','ec2-54-202-91-106.us-west-2.compute.amazonaws.com']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '54.202.91.106','ec2-54-202-91-106.us-west-2.compute.amazonaws.com']
 
 
 # Application definition
@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'yahoo_oauth',
     'yahoo_leagues'
 ]
 

@@ -1,0 +1,20 @@
+body {
+	background: transparent;
+}
+
+div.nav {
+	position: fixed;
+	margin-top: 10px;
+	padding: 1%;
+	width: 100%;
+}
+
+div.nav h2 {
+	margin: 0;
+}
+
+#container {
+    position: relative;
+    top: 45px;
+    padding: 2%;
+}

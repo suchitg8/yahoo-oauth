@@ -1,0 +1,70 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title> Yahoo Fantasy Sports </title>
+	<script src="https://code.jquery.com/jquery-1.12.1.min.js"></script>	
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+	<!-- Latest compiled and minified JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+	<link rel="stylesheet" href="{% static '/css/custom.css' %}" />
+
+</head>
+
+<body>
+	<div class="row nav">
+		<div class="col-sm-4"> <h2> Synergy Fantasy Football </h2> </div>
+		<div class="col-sm-2">
+			{% if yuser %}
+				<span> Signed in as <em> {{ yuser }} </em> </span>
+			{% else %}
+				<form id="login-form" method="post" action="/login/" class="form">
+					{% csrf_token %}
+						<input type="submit" name="login" value="SIGN IN TO YAHOO!" class="form-control" />
+				</form>
+			{% endif %}
+		</div>
+		<div class="col-sm-1">
+			<a href="javascript:void(0);"> Link </a>
+		</div>
+		<div class="col-sm-1">
+			<select name="dropdown1" class="form-control">
+				<option> 1 </option>
+				<option> 2 </option>
+				<option> 3 </option>
+			</select>
+		</div>
+		<div class="col-sm-2"  style="padding: 0;">
+			<form id="search-box">
+				<div class="col-xs-7" style="padding: 0;">
+					<input type="text" name="search-query" placeholder="Search" class="form-control" />
+				</div>
+				<div class="col-xs-5" style="padding: 0;">
+					<input type="submit" name="" ame="SUBMIT" value="SUBMIT" class="form-control" />
+				</div>
+			</form>
+		</div>
+		<div class="col-sm-2 pull-right">
+			<div class="col-sm-4"> <a href="javascript:void(0);"> Link </a> </div>
+			<div class="col-sm-8">
+				<select name="dropdown2" class="form-control">
+					<option> I </option>
+					<option> II </option>
+					<option> III </option>
+				</select>
+			</div>
+		</div>
+	</div>
+
+	<div id="container">
+		{% block main %} {% endblock %}
+	</div>
+
+</body>
+
+</html>
